@@ -4,21 +4,26 @@ Backend for planning employee shifts across stores. Built with Java 25 and Sprin
 
 ## Running locally
 
-Requirements: Java 25.
+Requirements: Java 25 and Docker (for the PostgreSQL database).
 
 ```bash
+docker compose up -d     # start PostgreSQL
 ./mvnw spring-boot:run   # start the app on http://localhost:8080
 ./mvnw test              # run the tests
 ```
+
+`./mvnw spring-boot:run` also starts the `docker-compose.yml` services automatically (and leaves them running
+when the app stops), so the explicit `docker compose up -d` is optional.
 
 Check that it is up:
 
 ```bash
 curl http://localhost:8080/actuator/health
-# {"status":"UP"}
+# {"status":"UP","components":{"db":{"status":"UP"},...}}
 ```
 
-`/actuator/health` (with the liveness and readiness probes) is the only exposed Actuator endpoint.
+`/actuator/health` (with the liveness and readiness probes) is the only exposed Actuator endpoint. It reports
+the `db` component (database connectivity) without details.
 
 ### Profiles
 
@@ -26,6 +31,27 @@ curl http://localhost:8080/actuator/health
 - `test`: used by the tests (`@ActiveProfiles("test")`), with quieter logging.
 
 Configuration lives in a single multi-document file: `src/main/resources/application.yaml`.
+
+### Database
+
+PostgreSQL 18, started with `docker compose up -d` (see `docker-compose.yml`). The app connects with the
+following settings, all overridable through environment variables:
+
+| Variable | Default |
+|---|---|
+| `DB_HOST` | `localhost` |
+| `DB_PORT` | `5432` |
+| `DB_NAME` | `shiftplanner` |
+| `DB_USERNAME` | `shiftplanner` |
+| `DB_PASSWORD` | `shiftplanner` |
+
+The compose service itself reads `POSTGRES_DB`, `POSTGRES_USER` and `POSTGRES_PASSWORD` (same defaults).
+
+Schema changes are Flyway migrations in `src/main/resources/db/migration` (`V<n>__<description>.sql`), applied
+automatically at startup. Hibernate runs with `ddl-auto=validate`: it never changes the schema, it only checks
+that the entities match it.
+
+The `test` profile excludes the database auto-configuration for now; Testcontainers will replace this.
 
 ## Architecture
 
