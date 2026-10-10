@@ -1,6 +1,6 @@
 ---
 slug: gh-4-ci-workflow
-state: ready               # draft | planned | implementing | checking | ready | closed | needs-decision
+state: closed              # draft | planned | implementing | checking | ready | closed | needs-decision
 size: L                 # S | M | L
 risk: high              # low | medium | high
 plan_approved: yes      # yes cuando el usuario aprueba el plan
@@ -96,3 +96,4 @@ notas: la rama de snapshot se empuja en un segundo push no atómico (recuperaci�
 - 2026-10-10 — revisión 1 (riesgo high, candidato 3f0547f82a79414a): approved-with-notes. Corrección acotada aplicada a las notas: el token de la App se genera después de todos los pasos de Maven y no se persiste en `.git/config`; la imagen se publica antes del push a git; los rulesets solo permiten merge commit; `release-version.sh` toma el tag semver más alto e ignora pre-releases; documentados la visibilidad de GHCR y la recuperación manual.
 - 2026-10-10 — re-revisión (candidato eb0fcec32d685832): approved-with-notes, sin bloqueantes. `verify` completo en verde. Pendiente: commit, PR, aplicar rulesets.
 - 2026-10-10 — commit 73ae075, PR #34 contra develop; `Build and unit tests` en verde (app 15368) e `integration-tests` skipped. Rulesets aplicados: develop (24839213) y main (24839216, bypass App 5262413), solo merge commit.
+- 2026-10-10 — PR #34 y #35 mergeadas; primera release v0.0.1 validada: commit y tag del bot en main (bypass OK), imagen en GHCR descargable sin credenciales, GitHub Release del bot, PR #36 de snapshot 0.0.2 con CI en verde y mergeada. Corregida la nota de visibilidad de GHCR. Cerrado.

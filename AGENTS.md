@@ -86,8 +86,8 @@ El estado se consulta y cambia con `scripts/gh-issue-status.sh <issue> [<estado>
   `develop` con `X.Y.(Z+1)-SNAPSHOT` (rama `chore/next-snapshot-X.Y.(Z+1)`). Mergea esa PR antes de la
   siguiente release. Si el workflow falla después del push del tag, re-ejecutarlo no sirve: completa a mano
   los pasos que falten (`gh release create vX.Y.Z --generate-notes`, push de la rama de snapshot y su PR).
-- La imagen de GHCR se crea privada en su primera publicación: hazla pública una vez en los ajustes del paquete
-  (o configura un pull secret en el clúster).
+- La imagen de GHCR queda enlazada al repo (etiqueta `org.opencontainers.image.source`) y hereda su visibilidad
+  pública: se descarga sin credenciales.
 - El bot es la GitHub App `frcalderon-release-bot` (variable `RELEASE_APP_CLIENT_ID`, secret
   `RELEASE_APP_PRIVATE_KEY`); es el único bypass del ruleset de `main`. Usa su token y no `GITHUB_TOKEN` para
   lo que deba disparar otros workflows (PRs, releases).
