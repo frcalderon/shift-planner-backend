@@ -44,13 +44,6 @@ spring:
   config:
     activate:
       on-profile: test
-  # Temporary until Testcontainers lands (#3): lets the context load without a database
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
-      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
-      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
-      - org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration
 
 logging:
   level:
