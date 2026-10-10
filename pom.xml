@@ -100,6 +100,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<image>
+						<name>ghcr.io/frcalderon/shift-planner-backend:${project.version}</name>
+						<env>
+							<BP_OCI_SOURCE>https://github.com/frcalderon/shift-planner-backend</BP_OCI_SOURCE>
+						</env>
+					</image>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
