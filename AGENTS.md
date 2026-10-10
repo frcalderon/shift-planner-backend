@@ -9,14 +9,14 @@ asignaciones, turnos, consolidación semanal y saldo de horas). API REST para el
 - Starters: `webmvc`, `validation`, `actuator`; Lombok (versión gestionada por Boot)
 - BD: PostgreSQL 18 + Flyway (migraciones en `src/main/resources/db/migration`), JPA con `ddl-auto: validate`
   y `open-in-view: false`; `docker-compose.yml` en la raíz
-- Tests: JUnit 5, Spring Boot test slices, ArchUnit
+- Tests: JUnit 5, Spring Boot test slices, ArchUnit, Testcontainers 2.x (`postgres:18`)
 
 ## Comandos
 | Acción | Comando |
 |---|---|
 | Compilar | `./mvnw -q compile` |
-| Tests | `./mvnw test` |
-| Suite completa | `./mvnw verify` (no requiere Docker por ahora) |
+| Tests unitarios y de slice | `./mvnw test` (sin Docker) |
+| Suite completa | `./mvnw verify` (requiere Docker: ejecuta los `*IT` con failsafe) |
 | Levantar la BD | `docker compose up -d` (`spring-boot:run` también la levanta) |
 | Arrancar en local | `./mvnw spring-boot:run` (perfil `dev` por defecto) |
 | Comprobar que ha levantado | `curl http://localhost:8080/actuator/health` |
@@ -64,8 +64,9 @@ com.frcalderon.shiftplanner
 - `@WebMvcTest` está en `org.springframework.boot.webmvc.test.autoconfigure` (Boot 4).
 - `ArchitectureTest`: reglas de arquitectura. `archunit.properties` tiene
   `archRule.failOnEmptyShould=false` porque aún hay paquetes vacíos.
-- Testcontainers: TODO — issue #3. Hasta entonces el perfil `test` excluye las autoconfiguraciones de
-  DataSource, Hibernate, Flyway y repositorios JPA (`spring.autoconfigure.exclude`); quitar esa exclusión en #3.
+- Integración: anota la clase con `@IntegrationTest` (`@SpringBootTest` + perfil `test` +
+  `TestcontainersConfiguration`, PostgreSQL con `@ServiceConnection` y Flyway real) y nómbrala `*IT`
+  para que la ejecute failsafe en `verify`. Los `*Test` (surefire) no deben necesitar BD.
 
 ## Notas
 - `application.yaml` es un único fichero multi-documento con perfiles `dev` y `test`.
