@@ -59,6 +59,19 @@ com.frcalderon.shiftplanner
   con 2 decimales.
 - Issues en GitHub (`frcalderon/shift-planner-backend`); ramas `feature/GH-<n>-<slug>`.
 
+## Flujo de GitHub
+Las issues viven en el Project "Shift Planner" (columna `Status`: Backlog → In progress → In review → Done).
+El estado se consulta y cambia con `scripts/gh-issue-status.sh <issue> [<estado> [--if <estado-actual>]]`.
+
+1. **Al empezar una issue** ("completa/haz la issue N"): `scripts/gh-issue-status.sh N "In progress" --if Backlog`.
+   Si no estaba en Backlog, el script no la toca; avisa al usuario de en qué estado estaba.
+2. **Al abrir la PR** (siempre contra `develop`, con `Closes #N` en la descripción):
+   `scripts/gh-issue-status.sh N "In review"`.
+3. **Al mergear en `develop`**: GitHub solo aplica `Closes #N` en PRs contra la rama por defecto (`main`),
+   así que el workflow `.github/workflows/close-issues-on-develop-merge.yml` cierra las issues referenciadas
+   (`Closes/Fixes/Resolves #N` en la descripción, o `GH-N` en el nombre de la rama). La automatización
+   "Item closed" del Project la mueve a Done. No hay que hacer nada a mano.
+
 ## Tests
 - Perfil `test` (`@ActiveProfiles("test")`) en los tests de Spring.
 - `@WebMvcTest` está en `org.springframework.boot.webmvc.test.autoconfigure` (Boot 4).
