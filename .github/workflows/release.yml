@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # The bot's release commit is pushed with an App token, which does trigger workflows.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compute versions
+        id: version
+        run: |
+          pom=$(./mvnw -B -q help:evaluate -Dexpression=project.version -DforceStdout)
+          release=$(scripts/release-version.sh "$pom")
+          IFS=. read -r major minor patch <<< "$release"
+          next="$major.$minor.$((patch + 1))-SNAPSHOT"
+          echo "Releasing $release (next snapshot $next)"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+
+      - name: Set release version
+        env:
+          RELEASE: ${{ steps.version.outputs.release }}
+        run: ./mvnw -B -q versions:set -DnewVersion="$RELEASE" -DgenerateBackupPoms=false
+
+      - name: Verify and build image
+        run: ./mvnw -B verify spring-boot:build-image-no-fork
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-test-reports
+          path: |
+            target/surefire-reports
+            target/failsafe-reports
+          if-no-files-found: ignore
+
+      - name: Commit release and next snapshot
+        env:
+          RELEASE: ${{ steps.version.outputs.release }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pom.xml
+          git commit -m "chore(release): v$RELEASE"
+          git tag -a "v$RELEASE" -m "v$RELEASE"
+          git switch -c "chore/next-snapshot-${NEXT%-SNAPSHOT}"
+          ./mvnw -B -q versions:set -DnewVersion="$NEXT" -DgenerateBackupPoms=false
+          git add pom.xml
+          git commit -m "chore: prepare next development iteration $NEXT"
+
+      # Before the git push: a re-run after a failed push only overwrites the same image tag.
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        env:
+          RELEASE: ${{ steps.version.outputs.release }}
+        run: docker push "ghcr.io/frcalderon/shift-planner-backend:$RELEASE"
+
+      # Created after every Maven run so that plugins and tests never see a token that can bypass the main ruleset.
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Push release and next snapshot
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE: ${{ steps.version.outputs.release }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git -c http.https://github.com/.extraheader="$auth" push --atomic origin "v$RELEASE^{commit}:refs/heads/main" "v$RELEASE"
+          git -c http.https://github.com/.extraheader="$auth" push origin "chore/next-snapshot-${NEXT%-SNAPSHOT}"
+
+      - name: Create GitHub release
+        env:
+          # The App token (not GITHUB_TOKEN) so that workflows listening to `release: published` run.
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE: ${{ steps.version.outputs.release }}
+        run: gh release create "v$RELEASE" --title "v$RELEASE" --generate-notes --verify-tag
+
+      - name: Open next snapshot PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RELEASE: ${{ steps.version.outputs.release }}
+          NEXT: ${{ steps.version.outputs.next }}
+        run: |
+          gh pr create --base develop --head "chore/next-snapshot-${NEXT%-SNAPSHOT}" \
+            --title "chore: prepare next development iteration $NEXT" \
+            --body "Brings v$RELEASE from main back into develop and opens $NEXT."
