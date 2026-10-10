@@ -1,0 +1,1 @@
+-- Baseline migration: schema is introduced by subsequent migrations
