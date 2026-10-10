@@ -1,6 +1,6 @@
 ---
 slug: gh-4-ci-workflow
-state: checking            # draft | planned | implementing | checking | ready | closed | needs-decision
+state: ready               # draft | planned | implementing | checking | ready | closed | needs-decision
 size: L                 # S | M | L
 risk: high              # low | medium | high
 plan_approved: yes      # yes cuando el usuario aprueba el plan
@@ -75,7 +75,7 @@ El despliegue (Kubernetes) queda para otra issue.
 - Requisito: el usuario ha creado e instalado la GitHub App y guardado los secrets (pasos en el resumen al usuario)
 - Ficheros previstos: `AGENTS.md` (sección CI/Release), `scripts/gh-rulesets.sh` (rulesets como código, idempotente)
 - Tests que la demuestran: los nombres de los checks se toman de la primera ejecución en la PR; PR de prueba con un test roto → merge bloqueado
-- [ ] Crear los rulesets de `develop` y `main` con `gh api` (bypass en `main` para la App)
+- [x] Crear los rulesets de `develop` y `main` con `gh api` (bypass en `main` para la App)
 - [x] Documentar en `AGENTS.md` los workflows, el disparo manual de IT, el flujo de release y la configuración de la App
 
 ## Recibo de revisión
@@ -95,3 +95,4 @@ notas: la rama de snapshot se empuja en un segundo push no atómico (recuperaci�
 - 2026-10-10 — fase 3 preparada: `scripts/gh-rulesets.sh` (probado en seco) y sección *CI y releases* en `AGENTS.md`. Falta aplicar los rulesets tras la primera ejecución en la PR. App `frcalderon-release-bot` (ID 5262413) creada e instalada; variable y secret configurados.
 - 2026-10-10 — revisión 1 (riesgo high, candidato 3f0547f82a79414a): approved-with-notes. Corrección acotada aplicada a las notas: el token de la App se genera después de todos los pasos de Maven y no se persiste en `.git/config`; la imagen se publica antes del push a git; los rulesets solo permiten merge commit; `release-version.sh` toma el tag semver más alto e ignora pre-releases; documentados la visibilidad de GHCR y la recuperación manual.
 - 2026-10-10 — re-revisión (candidato eb0fcec32d685832): approved-with-notes, sin bloqueantes. `verify` completo en verde. Pendiente: commit, PR, aplicar rulesets.
+- 2026-10-10 — commit 73ae075, PR #34 contra develop; `Build and unit tests` en verde (app 15368) e `integration-tests` skipped. Rulesets aplicados: develop (24839213) y main (24839216, bypass App 5262413), solo merge commit.
