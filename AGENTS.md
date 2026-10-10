@@ -48,6 +48,8 @@ com.frcalderon.shiftplanner
 - `record` para DTOs, comandos, consultas y value objects. Lombok solo en infraestructura
   (p. ej. entidades JPA).
 - Las entidades JPA no salen de `adapter/out/persistence`: se mapean a modelo de dominio.
+- Código autodescriptivo: evita Javadoc y comentarios salvo para explicar un porqué no obvio.
+  Sin `package-info.java`; los paquetes se crean con su primera clase.
 - Salud de la app vía Actuator (`/actuator/health`, con `liveness`/`readiness`); no crear
   endpoints de health propios. Solo `health` está expuesto.
 - Semanas ISO-8601 (`year` = año ISO de la semana, `week` 1–53); `dayOfWeek` ISO (1 = lunes).

@@ -8,13 +8,6 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
-/**
- * Enforces the hexagonal dependency rule: infrastructure -> application -> domain.
- * <p>
- * Packages that are still empty are tolerated (see {@code archunit.properties}).
- * "No Lombok in domain/application" cannot be checked here: Lombok annotations have
- * source retention and are not present in the compiled classes.
- */
 @AnalyzeClasses(packages = "com.frcalderon.shiftplanner", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
 
